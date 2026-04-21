@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Todo Uygulaması</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -30,17 +26,9 @@
       height: fit-content;
     }
 
-    h1 {
-      font-size: 1.6rem;
-      color: #1a1a2e;
-      margin-bottom: 24px;
-    }
+    h1 { font-size: 1.6rem; color: #1a1a2e; margin-bottom: 24px; }
 
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
+    .input-row { display: flex; gap: 8px; margin-bottom: 24px; }
 
     .input-row input {
       flex: 1;
@@ -51,10 +39,7 @@
       outline: none;
       transition: border-color 0.2s;
     }
-
-    .input-row input:focus {
-      border-color: #6c63ff;
-    }
+    .input-row input:focus { border-color: #6c63ff; }
 
     .input-row button {
       padding: 10px 18px;
@@ -66,16 +51,10 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+    .input-row button:hover { background: #574fd6; }
+    .input-row button:disabled { background: #aaa; cursor: not-allowed; }
 
-    .input-row button:hover {
-      background: #574fd6;
-    }
-
-    .filters {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .filters { display: flex; gap: 8px; margin-bottom: 16px; }
 
     .filters button {
       flex: 1;
@@ -88,16 +67,9 @@
       color: #555;
       transition: all 0.2s;
     }
+    .filters button.active { border-color: #6c63ff; color: #6c63ff; font-weight: 600; }
 
-    .filters button.active {
-      border-color: #6c63ff;
-      color: #6c63ff;
-      font-weight: 600;
-    }
-
-    ul {
-      list-style: none;
-    }
+    ul { list-style: none; }
 
     li {
       display: flex;
@@ -107,14 +79,8 @@
       border-radius: 8px;
       transition: background 0.15s;
     }
-
-    li:hover {
-      background: #f7f7ff;
-    }
-
-    li + li {
-      border-top: 1px solid #f0f0f0;
-    }
+    li:hover { background: #f7f7ff; }
+    li + li { border-top: 1px solid #f0f0f0; }
 
     li input[type="checkbox"] {
       width: 18px;
@@ -124,17 +90,8 @@
       flex-shrink: 0;
     }
 
-    li span {
-      flex: 1;
-      font-size: 0.95rem;
-      color: #333;
-      word-break: break-word;
-    }
-
-    li.done span {
-      text-decoration: line-through;
-      color: #aaa;
-    }
+    li span { flex: 1; font-size: 0.95rem; color: #333; word-break: break-word; }
+    li.done span { text-decoration: line-through; color: #aaa; }
 
     li .delete-btn {
       background: none;
@@ -146,17 +103,9 @@
       border-radius: 4px;
       transition: color 0.2s;
     }
+    li .delete-btn:hover { color: #e74c3c; }
 
-    li .delete-btn:hover {
-      color: #e74c3c;
-    }
-
-    .empty {
-      text-align: center;
-      color: #bbb;
-      font-size: 0.9rem;
-      padding: 24px 0;
-    }
+    .empty { text-align: center; color: #bbb; font-size: 0.9rem; padding: 24px 0; }
 
     .footer {
       margin-top: 20px;
@@ -166,7 +115,6 @@
       font-size: 0.82rem;
       color: #aaa;
     }
-
     .footer button {
       background: none;
       border: none;
@@ -174,19 +122,30 @@
       color: #e74c3c;
       font-size: 0.82rem;
     }
+    .footer button:hover { text-decoration: underline; }
 
-    .footer button:hover {
-      text-decoration: underline;
+    .loader { text-align: center; padding: 24px 0; color: #aaa; font-size: 0.9rem; }
+
+    .error-msg {
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6cb;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Yapılacaklar</h1>
+    <div class="error-msg" id="errorMsg"></div>
 
     <div class="input-row">
       <input type="text" id="todoInput" placeholder="Yeni görev ekle..." maxlength="120">
-      <button onclick="addTodo()">Ekle</button>
+      <button id="addBtn" onclick="addTodo()">Ekle</button>
     </div>
 
     <div class="filters">
@@ -195,7 +154,7 @@
       <button onclick="setFilter('done', this)">Tamamlanan</button>
     </div>
 
-    <ul id="todoList"></ul>
+    <ul id="todoList"><div class="loader">Yükleniyor...</div></ul>
 
     <div class="footer">
       <span id="countLabel"></span>
@@ -204,85 +163,146 @@
   </div>
 
   <script>
-    let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    const SUPABASE_URL  = 'https://rqojwgezzafsrmfvwwxj.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxb2p3Z2V6emFmc3JtZnZ3d3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTU2NDgsImV4cCI6MjA5MjM3MTY0OH0.c55FzHX8Tkl2hPqVwHT17EIwqAZI2-_D0bkshagqQ1A';
+
+    const BASE_HEADERS = {
+      'apikey': SUPABASE_ANON,
+      'Authorization': `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+
     let filter = 'all';
 
-    const input = document.getElementById('todoInput');
-    const list = document.getElementById('todoList');
-    const countLabel = document.getElementById('countLabel');
+    const input   = document.getElementById('todoInput');
+    const addBtn  = document.getElementById('addBtn');
+    const list    = document.getElementById('todoList');
+    const countLb = document.getElementById('countLabel');
+    const errorEl = document.getElementById('errorMsg');
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
 
-    function addTodo() {
+    async function api(path, options = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+        ...options,
+        headers: { ...BASE_HEADERS, ...(options.headers || {}) }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+      const text = await res.text();
+      return text ? JSON.parse(text) : [];
+    }
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+      setTimeout(() => { errorEl.style.display = 'none'; }, 4000);
+    }
+
+    async function loadTodos() {
+      try {
+        let path = '/todos?order=created_at.asc';
+        if (filter === 'active') path += '&done=eq.false';
+        if (filter === 'done')   path += '&done=eq.true';
+
+        const [todos, all] = await Promise.all([
+          api(path),
+          api('/todos?select=done')
+        ]);
+
+        renderList(todos);
+        countLb.textContent = `${all.filter(t => !t.done).length} görev kaldı`;
+      } catch (e) {
+        showError('Yükleme hatası: ' + e.message);
+        list.innerHTML = '<p class="empty">Yükleme hatası</p>';
+      }
+    }
+
+    async function addTodo() {
       const text = input.value.trim();
       if (!text) return;
-      todos.push({ id: Date.now(), text, done: false });
-      input.value = '';
-      save();
-      render();
+      addBtn.disabled = true;
+      try {
+        await api('/todos', {
+          method: 'POST',
+          body: JSON.stringify({ text, done: false })
+        });
+        input.value = '';
+        await loadTodos();
+      } catch (e) {
+        showError('Eklenemedi: ' + e.message);
+      } finally {
+        addBtn.disabled = false;
+      }
     }
 
-    function toggleTodo(id) {
-      const todo = todos.find(t => t.id === id);
-      if (todo) todo.done = !todo.done;
-      save();
-      render();
+    async function toggleTodo(id, currentDone) {
+      try {
+        await api(`/todos?id=eq.${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ done: !currentDone })
+        });
+        await loadTodos();
+      } catch (e) {
+        showError('Güncellenemedi: ' + e.message);
+      }
     }
 
-    function deleteTodo(id) {
-      todos = todos.filter(t => t.id !== id);
-      save();
-      render();
+    async function deleteTodo(id) {
+      try {
+        await api(`/todos?id=eq.${id}`, { method: 'DELETE' });
+        await loadTodos();
+      } catch (e) {
+        showError('Silinemedi: ' + e.message);
+      }
     }
 
-    function clearDone() {
-      todos = todos.filter(t => !t.done);
-      save();
-      render();
+    async function clearDone() {
+      try {
+        await api('/todos?done=eq.true', { method: 'DELETE' });
+        await loadTodos();
+      } catch (e) {
+        showError('Temizlenemedi: ' + e.message);
+      }
     }
 
     function setFilter(f, btn) {
       filter = f;
       document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      render();
+      loadTodos();
     }
 
-    function save() {
-      localStorage.setItem('todos', JSON.stringify(todos));
-    }
-
-    function render() {
-      const visible = todos.filter(t =>
-        filter === 'all' ? true : filter === 'done' ? t.done : !t.done
-      );
-
+    function renderList(todos) {
       list.innerHTML = '';
-
-      if (visible.length === 0) {
+      if (todos.length === 0) {
         list.innerHTML = '<p class="empty">Görev yok</p>';
-      } else {
-        visible.forEach(todo => {
-          const li = document.createElement('li');
-          if (todo.done) li.classList.add('done');
-          li.innerHTML = `
-            <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
-            <span>${escHtml(todo.text)}</span>
-            <button class="delete-btn" onclick="deleteTodo(${todo.id})" title="Sil">&#x2715;</button>
-          `;
-          list.appendChild(li);
-        });
+        return;
       }
-
-      const activeCount = todos.filter(t => !t.done).length;
-      countLabel.textContent = `${activeCount} görev kaldı`;
+      todos.forEach(todo => {
+        const li = document.createElement('li');
+        if (todo.done) li.classList.add('done');
+        li.innerHTML = `
+          <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${todo.id}, ${todo.done})">
+          <span>${escHtml(todo.text)}</span>
+          <button class="delete-btn" onclick="deleteTodo(${todo.id})" title="Sil">&#x2715;</button>
+        `;
+        list.appendChild(li);
+      });
     }
 
     function escHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
-    render();
+    loadTodos();
   </script>
 </body>
 </html>
