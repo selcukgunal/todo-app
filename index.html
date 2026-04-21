@@ -493,13 +493,10 @@
       const btn = document.getElementById('registerBtn');
       btn.disabled = true; btn.textContent = 'Kayıt olunuyor...';
       try {
-        await authFetch('/signup', {
+        const redirectTo = encodeURIComponent('https://selcukgunal.github.io/todo-app/');
+        await authFetch(`/signup?redirect_to=${redirectTo}`, {
           method: 'POST',
-          body: JSON.stringify({
-            email,
-            password: pass,
-            redirect_to: 'https://selcukgunal.github.io/todo-app/'
-          })
+          body: JSON.stringify({ email, password: pass })
         });
         showMsg('authMsg',
           '📧 Doğrulama e-postası gönderildi! Lütfen gelen kutunuzu kontrol edin ve linke tıklayarak hesabınızı onaylayın.',
