@@ -498,9 +498,7 @@
           body: JSON.stringify({
             email,
             password: pass,
-            options: {
-              emailRedirectTo: 'https://selcukgunal.github.io/todo-app/'
-            }
+            redirect_to: 'https://selcukgunal.github.io/todo-app/'
           })
         });
         showMsg('authMsg',
